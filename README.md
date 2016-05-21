@@ -1,0 +1,2 @@
+# firebase
+Haskell Firebase client
