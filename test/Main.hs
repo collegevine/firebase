@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Lens.Lens
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Aeson
@@ -35,6 +36,11 @@ main = do
 
 test :: TestM ()
 test = do
-    put "sandbox" $ object ["val" .= ("test value" :: String)]
-    r <- (get "sandbox" :: TestM Value)
-    liftIO $ putStrLn (show r)
+    put "a" $ object ["val" .= ("test value" :: String)]
+    ra <- (get "a" :: TestM Value)
+    liftIO $ putStrLn (show ra)
+    mapM_ (post "b") ([1..10] :: [Int])
+    rb <- (get "b" :: TestM Value)
+    liftIO $ putStrLn (show rb)
+    put "c" $ object ["a" .= ("va" :: String), "b" .= ("vb" :: String)]
+    patch "c" $ object ["a" .= ("va_patched" :: String)]

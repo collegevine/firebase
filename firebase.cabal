@@ -1,13 +1,13 @@
 name:                firebase
 version:             0.1.0
-synopsis:            Initial project template from stack
-description:         Please see README.md
-homepage:            https://github.com/ralphmorton/firebase#readme
+synopsis:            Firebase REST client
+description:         Firebase REST client
+homepage:            https://github.com/collegevine/firebase#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Ralph Morton
 maintainer:          ralphmorton@gmail.com
-copyright:           Ralph Morton
+copyright:           Collegevine
 category:            Database
 build-type:          Simple
 -- extra-source-files:
@@ -38,4 +38,4 @@ test-suite firebase-test
 
 source-repository head
   type:     git
-  location: https://github.com/ralphmorton/firebase
+  location: https://github.com/collegevine/firebase
