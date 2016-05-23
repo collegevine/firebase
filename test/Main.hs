@@ -32,15 +32,19 @@ main = do
     let httpc = HttpCfg mgr
     let te = TestEnv fb httpc
     res <- runExceptT $ flip runReaderT te test
-    liftIO . putStrLn $ show res
+    case res of
+        Left e -> error $ show e
+        Right r -> return ()
 
 test :: TestM ()
 test = do
     put "a" $ object ["val" .= ("test value" :: String)]
-    ra <- (get "a" :: TestM Value)
+    ra <- (get "a" Nothing :: TestM Value)
     liftIO $ putStrLn (show ra)
     mapM_ (post "b") ([1..10] :: [Int])
-    rb <- (get "b" :: TestM Value)
+    rb <- (get "b" Nothing :: TestM Value)
     liftIO $ putStrLn (show rb)
     put "c" $ object ["a" .= ("va" :: String), "b" .= ("vb" :: String)]
     patch "c" $ object ["a" .= ("va_patched" :: String)]
+    rx <- (get "" (Just $ query { orderBy = Just "$key", startAt = Just $ key ("c" :: String) }) :: TestM Value)
+    liftIO $ putStrLn (show rx)
