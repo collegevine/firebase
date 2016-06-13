@@ -24,10 +24,10 @@ data Firebase = Firebase {
 newtype Name = Name { unName :: String } deriving Show
 
 class ToLocation a where
-  toSegment :: a -> [Text]
+  toSegment :: a -> [String]
   toLoc :: a -> Firebase -> String
   toLoc a (Firebase token rootUrl)= 
-    rootUrl ++ (show . toLazyByteString . encodePathSegments . toSegment $ a)
+    rootUrl ++ (show . toLazyByteString . encodePathSegments . Prelude.map pack . toSegment $ a)
 
 
 instance FromJSON Name where
