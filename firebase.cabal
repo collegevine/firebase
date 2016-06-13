@@ -1,5 +1,5 @@
 name:                firebase
-version:             0.2.1
+version:             0.3.0
 synopsis:            Firebase REST client
 description:         Firebase REST client
 homepage:            https://github.com/collegevine/firebase#readme
