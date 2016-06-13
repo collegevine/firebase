@@ -18,11 +18,29 @@ data TestEnv = TestEnv {
     testHttp :: HttpCfg
 }
 
+data TestObj = TestObj {
+  id :: String,
+  value :: Value
+}
+
 instance HasHttpCfg TestEnv where
     httpCfg = lens testHttp (\te h -> te { testHttp = h })
 
 instance HasFirebase TestEnv where
     firebase = lens testFB (\te f -> te { testFB = f })
+
+instance ToLocation TestObj where
+  toSegment (TestObj id _) = [id]
+
+instance ToJSON TestObj where
+  toJSON (TestObj id val) = 
+    object [
+      "id" .= id,
+      "value" .= val
+    ]
+
+instance ToLocation Int where
+  toSegment n = ["ints", show n]
 
 main :: IO ()
 main = do
@@ -38,13 +56,13 @@ main = do
 
 test :: TestM ()
 test = do
-    put "a" $ object ["val" .= ("test value" :: String)]
+    put (TestObj "a" (object ["val" .= ("test value" :: String)]))
     ra <- (get "a" Nothing :: TestM Value)
     liftIO $ putStrLn (show ra)
-    mapM_ (post "b") ([1..10] :: [Int])
+    mapM_ (post) ([1..10] :: [Int])
     rb <- (get "b" Nothing :: TestM Value)
     liftIO $ putStrLn (show rb)
-    put "c" $ object ["a" .= ("va" :: String), "b" .= ("vb" :: String)]
-    patch "c" $ object ["a" .= ("va_patched" :: String)]
+    put (TestObj "c" (object ["a" .= ("va" :: String), "b" .= ("vb" :: String)]))
+    patch (TestObj "c" (object ["a" .= ("va_patched" :: String)]))
     rx <- (get "" (Just $ query { orderBy = Just "$key", startAt = Just $ key ("c" :: String) }) :: TestM Value)
     liftIO $ putStrLn (show rx)

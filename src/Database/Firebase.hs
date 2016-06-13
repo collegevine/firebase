@@ -32,22 +32,75 @@ query = Query Nothing Nothing Nothing Nothing
 key :: ToJSON a => a -> Key
 key = Key
 
-get :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, FromJSON a) => Location -> Maybe Query -> m a
+get :: (
+  MonadIO m, 
+  MonadError e m, 
+  MonadReader r m,
+  AsHttpError e,
+  HasFirebase r,
+  HasHttpCfg r,
+  FromJSON a) => 
+    Location -> 
+    Maybe Query -> m a
 get loc mq = httpJSON =<< fbReq GET loc NoRequestData mq
 
-put :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m ()
-put loc dta = http' =<< fbReq PUT loc (mkJSONData dta) Nothing
+put :: (
+  MonadIO m, MonadError e m,
+  MonadReader r m,
+  AsHttpError e,
+  HasFirebase r,
+  HasHttpCfg r,
+  ToLocation a,
+  ToJSON a) => 
+    a -> m ()
+put dta = do
+  fb <- view firebase
+  let path = toLoc dta fb
+  http' =<< fbReq PUT path (mkJSONData dta) Nothing
 
-post :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m FBID
-post loc dta = unName <$> (httpJSON =<< fbReq POST loc (mkJSONData dta) Nothing)
+post :: (
+  MonadIO m, MonadError e m,
+  MonadReader r m,
+  AsHttpError e,
+  HasFirebase r,
+  HasHttpCfg r,
+  ToLocation a,
+  ToJSON a) => 
+    a -> m FBID
+post dta = do
+  fb <- view firebase
+  let path = toLoc dta fb
+  unName <$> (httpJSON =<< fbReq POST path (mkJSONData dta) Nothing)
 
-patch :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m ()
-patch loc dta = http' =<< fbReq (CustomMethod "PATCH") loc (mkJSONData dta) Nothing
+patch :: (
+  MonadIO m, MonadError e m,
+  MonadReader r m,
+  AsHttpError e,
+  HasFirebase r,
+  HasHttpCfg r,
+  ToLocation a,
+  ToJSON a) => 
+    a -> m ()
+patch dta = do
+  fb <- view firebase
+  let path = toLoc dta fb
+  http' =<< fbReq (CustomMethod "PATCH") path (mkJSONData dta) Nothing
 
-delete :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r) => Location -> m ()
-delete loc = http' =<< fbReq DELETE loc NoRequestData Nothing
+delete :: (
+  MonadIO m, MonadError e m,
+  MonadReader r m,
+  AsHttpError e,
+  HasFirebase r,
+  HasHttpCfg r,
+  ToLocation a) => 
+    a -> m ()
+delete obj = do 
+  fb <- view firebase
+  let path = toLoc obj fb
+  http' =<< fbReq DELETE path NoRequestData Nothing
 
-fbReq :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r) => HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
+fbReq :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r) => 
+  HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
 fbReq mthd loc dta mq = do
     baseURL <- view firebaseURL
     token <- view firebaseToken
