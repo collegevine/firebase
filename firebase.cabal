@@ -1,5 +1,5 @@
 name:                firebase
-version:             0.2.0
+version:             0.2.1
 synopsis:            Firebase REST client
 description:         Firebase REST client
 homepage:            https://github.com/collegevine/firebase#readme
@@ -23,6 +23,7 @@ library
                      , aeson >= 0.9.0.1
                      , http-types >= 0.9
                      , nano-http >= 0.1.1
+                     , text >= 1.2.2.1
   default-language:    Haskell2010
 
 test-suite firebase-test

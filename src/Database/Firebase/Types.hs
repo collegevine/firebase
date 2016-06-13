@@ -7,6 +7,9 @@ module Database.Firebase.Types where
 import Control.Applicative ((<$>))
 import Control.Lens.TH
 import Control.Monad (mzero)
+import Network.HTTP.Types.URI
+import Data.Text
+import Data.ByteString.Builder (toLazyByteString)
 import Data.Aeson
 
 type Location = String
@@ -19,6 +22,13 @@ data Firebase = Firebase {
 
 -- |Representation of a Firebase name response to a POST
 newtype Name = Name { unName :: String } deriving Show
+
+class ToLocation a where
+  toSegment :: a -> [Text]
+  toLoc :: a -> Firebase -> String
+  toLoc a (Firebase token rootUrl)= 
+    rootUrl ++ (show . toLazyByteString . encodePathSegments . toSegment $ a)
+
 
 instance FromJSON Name where
     parseJSON (Object v) = Name <$> v .: "name"
