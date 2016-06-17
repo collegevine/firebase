@@ -21,7 +21,7 @@ import Control.Monad.Trans (MonadIO)
 import Data.Aeson (FromJSON, ToJSON, encode)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as BL
-import Data.List (intersperse)
+import Data.List (intercalate)
 import Data.Maybe (catMaybes)
 import Network.HTTP.Nano
 import Network.HTTP.Types.URI (urlEncode)
@@ -32,22 +32,22 @@ query = Query Nothing Nothing Nothing Nothing
 key :: ToJSON a => a -> Key
 key = Key
 
-get :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, FromJSON a) => Location -> Maybe Query -> m a
+get :: (FbHttpM m e r, HasFirebase r, FromJSON a) => Location -> Maybe Query -> m a
 get loc mq = httpJSON =<< fbReq GET loc NoRequestData mq
 
-put :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m ()
+put :: (FbHttpM m e r, HasFirebase r, ToJSON a) => Location -> a -> m ()
 put loc dta = http' =<< fbReq PUT loc (mkJSONData dta) Nothing
 
-post :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m FBID
+post :: (FbHttpM m e r, HasFirebase r, ToJSON a) => Location -> a -> m FBID
 post loc dta = unName <$> (httpJSON =<< fbReq POST loc (mkJSONData dta) Nothing)
 
-patch :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r, ToJSON a) => Location -> a -> m ()
+patch :: (FbHttpM m e r, HasFirebase r, ToJSON a) => Location -> a -> m ()
 patch loc dta = http' =<< fbReq (CustomMethod "PATCH") loc (mkJSONData dta) Nothing
 
-delete :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r) => Location -> m ()
+delete :: (FbHttpM m e r, HasFirebase r) => Location -> m ()
 delete loc = http' =<< fbReq DELETE loc NoRequestData Nothing
 
-fbReq :: (MonadIO m, MonadError e m, MonadReader r m, AsHttpError e, HasFirebase r, HasHttpCfg r) => HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
+fbReq :: (FbHttpM m e r, HasFirebase r) => HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
 fbReq mthd loc dta mq = do
     baseURL <- view firebaseURL
     token <- view firebaseToken
@@ -56,7 +56,7 @@ fbReq mthd loc dta mq = do
     buildReq mthd url dta
 
 buildQuery :: Query -> String
-buildQuery q = concat . intersperse "&" . fmap (uncurry toParam) $ catMaybes [orderByQ, startAtQ, endAtQ, limitQ $ limit q]
+buildQuery q = intercalate "&" . fmap (uncurry toParam) $ catMaybes [orderByQ, startAtQ, endAtQ, limitQ $ limit q]
     where
     orderByQ = ("orderBy",) . show <$> orderBy q
     startAtQ = ("startAt",) . encodeK <$> startAt q
