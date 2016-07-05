@@ -47,6 +47,17 @@ patch loc dta = http' =<< fbReq (CustomMethod "PATCH") loc (mkJSONData dta) Noth
 delete :: (FbHttpM m e r, HasFirebase r) => Location -> m ()
 delete loc = http' =<< fbReq DELETE loc NoRequestData Nothing
 
+sendMessage :: (FbHttpM m e r, HasFirebase r, ToJSON a) => Message a -> m ()
+sendMessage msg = do
+    req <- buildReq POST googleCloudEndpoint (mkJSONData msg)
+    apiKey <- view firebaseToken
+    let req' = addHeaders [json, auth apiKey] req
+    http' req'
+    where 
+        json = ("Content-Type", "application/json")
+        auth t = ("Authorization", "key=" ++ t)
+        googleCloudEndpoint = "https://fcm.googleapis.com/fcm/send"
+
 fbReq :: (FbHttpM m e r, HasFirebase r) => HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
 fbReq mthd loc dta mq = do
     baseURL <- view firebaseURL
