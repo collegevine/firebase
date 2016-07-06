@@ -8,7 +8,8 @@ module Database.Firebase(
     put,
     post,
     patch,
-    delete
+    delete,
+    sendMessage
 ) where
 
 import Database.Firebase.Types
