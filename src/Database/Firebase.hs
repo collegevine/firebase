@@ -9,7 +9,9 @@ module Database.Firebase(
     post,
     patch,
     delete,
-    sendMessage
+    sendMessage,
+    getRules,
+    setRules
 ) where
 
 import Database.Firebase.Types
@@ -54,10 +56,16 @@ sendMessage msg = do
     apiKey <- view firebaseToken
     let req' = addHeaders [json, auth apiKey] req
     http' req'
-    where 
+    where
         json = ("Content-Type", "application/json")
         auth t = ("Authorization", "key=" ++ t)
         googleCloudEndpoint = "https://fcm.googleapis.com/fcm/send"
+
+getRules :: (FbHttpM m e r, HasFirebase r, FromJSON a) => m a
+getRules = httpJSON =<< fbReq GET ".settings/rules" NoRequestData Nothing
+
+setRules :: (FbHttpM m e r, HasFirebase r, ToJSON a) => a -> m ()
+setRules dta = http' =<< fbReq PUT ".settings/rules" (mkJSONData dta) Nothing
 
 fbReq :: (FbHttpM m e r, HasFirebase r) => HttpMethod -> Location -> RequestData -> Maybe Query -> m Request
 fbReq mthd loc dta mq = do
